@@ -1,4 +1,5 @@
 ---
+{{- if .Values.route.enabled -}}
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
@@ -6,10 +7,11 @@ metadata:
 spec:
   host: jira-webhook-proxy.apps.private.{{ .Values.region_hostname }}
   port:
-    targetPort: 8080
+    targetPort: {{ .Values.service.port }}
   to:
     kind: Service
     name: jira-webhook-proxy
   tls:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
+{{- end }}

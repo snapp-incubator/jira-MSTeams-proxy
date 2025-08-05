@@ -8,6 +8,11 @@ image:
 service:
   port: 8080
 
+route:
+  enabled: false
+httpproxy:
+  enabled: true
+
 resources:
   limits:
     memory: 500Mi
