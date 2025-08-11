@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/snapp-incubator/jira-element-proxy
   pullPolicy: Always
-  tag: "main@sha256:afb77917d7186242ace86974cc7276974a2d3efb98dd90462b1614902a085bdf"
+  tag: "v0.9"
 
 service:
   port: 8080
