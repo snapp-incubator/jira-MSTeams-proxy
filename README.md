@@ -1,7 +1,10 @@
-# Jira to Microsoft Teams Webhook Proxy
-
-[![Go](https://img.shields.io/badge/Go-1.18%2B-blue?logo=go)](https://golang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<div align="center">
+ <h1>Jira to Microsoft Teams Webhook Proxy</h1>
+ <a href="https://golang.org/"><img src="https://img.shields.io/badge/Go-1.18%2B-blue?logo=go&style=for-the-badge" /></a>
+ <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" /></a>
+</div>
+<br />
+<br />
 
 A lightweight, configurable webhook proxy written in Go that receives Jira issue notifications and forwards them as richly formatted, user-mention-enabled messages to specific Microsoft Teams channels.
 
