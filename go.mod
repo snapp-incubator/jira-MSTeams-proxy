@@ -4,9 +4,9 @@ go 1.24.0
 
 require (
 	github.com/knadh/koanf v1.5.0
-	github.com/knadh/koanf/v2 v2.3.0
-	github.com/labstack/echo/v4 v4.14.0
-	github.com/sirupsen/logrus v1.9.3
+	github.com/knadh/koanf/v2 v2.3.2
+	github.com/labstack/echo/v4 v4.15.0
+	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/cobra v1.10.2
 )
 
