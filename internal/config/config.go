@@ -17,10 +17,10 @@ const (
 )
 
 type (
-	// Config holds all configurations.
 	Config struct {
-		API     API           `koanf:"api"`
-		MSTeams MSTeamsConfig `koanf:"msteams"`
+		API        API              `koanf:"api"`
+		MSTeams    MSTeamsConfig    `koanf:"msteams"`
+		Mattermost MattermostConfig `koanf:"mattermost"`
 	}
 
 	API struct {
@@ -28,14 +28,17 @@ type (
 	}
 
 	MSTeamsConfig struct {
-		URL         string `koanf:"url"` // Default MS Teams Webhook URL
+		URL         string `koanf:"url"`
 		RuntimeURL  string `koanf:"runtime_url"`
 		PlatformURL string `koanf:"platform_url"`
 		NetworkURL  string `koanf:"network_url"`
 	}
+
+	MattermostConfig struct {
+		Webhook string `koanf:"webhook"`
+	}
 )
 
-// New reads configuration with viper.
 func New() Config {
 	var instance Config
 

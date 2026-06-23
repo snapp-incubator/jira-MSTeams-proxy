@@ -1,6 +1,6 @@
 {
     "self": "http://your-jira-instance.com/rest/api/2/issue/10001",
-    "id": "10001",
+    "id": 10001,
     "key": "PROJ-125",
     "changelog": {
         "startAt": 0,
@@ -12,7 +12,7 @@
         "summary": "Urgent: Production server is down!",
         "issuetype": {
             "self": "http://your-jira-instance.com/rest/api/2/issuetype/10004",
-            "id": "10004",
+            "id": 10004,
             "description": "A problem which impairs or prevents the functions of the product.",
             "iconUrl": "http://your-jira-instance.com/secure/viewavatar?size=xsmall&avatarId=10303&avatarType=issuetype",
             "name": "Bug",
@@ -62,7 +62,7 @@
             "self": "http://your-jira-instance.com/rest/api/2/priority/1",
             "iconUrl": "http://your-jira-instance.com/images/icons/priorities/highest.svg",
             "name": "Highest",
-            "id": "1",
+            "id": 1,
             "namedValue": "Highest"
         },
         "status": {
@@ -70,7 +70,7 @@
             "description": "The issue is currently being worked on.",
             "iconUrl": "http://your-jira-instance.com/images/icons/statuses/inprogress.png",
             "name": "In Progress",
-            "id": "10000",
+            "id": 10000,
             "statusCategory": {
                 "self": "http://your-jira-instance.com/rest/api/2/statuscategory/4",
                 "id": 4,
@@ -86,7 +86,7 @@
         "components": [
             {
                 "self": "http://your-jira-instance.com/rest/api/2/component/10000",
-                "id": "10000",
+                "id": 10000,
                 "name": "Backend Services",
                 "description": "Core backend processing services"
             }

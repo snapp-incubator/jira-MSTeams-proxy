@@ -5,3 +5,5 @@ msteams:
   runtime_url: ""
   platform_url: ""
   network_url: ""
+mattermost:
+  webhook: ""
