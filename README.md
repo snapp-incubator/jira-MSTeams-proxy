@@ -1,156 +1,242 @@
 <div align="center">
- <h1>Jira to Microsoft Teams Webhook Proxy</h1>
- <a href="https://golang.org/"><img src="https://img.shields.io/badge/Go-1.18%2B-blue?logo=go&style=for-the-badge" /></a>
+ <h1>Jira Webhook Proxy — MSTeams & Mattermost</h1>
+ <a href="https://golang.org/"><img src="https://img.shields.io/badge/Go-1.25%2B-blue?logo=go&style=for-the-badge" /></a>
  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" /></a>
 </div>
 <br />
-<br />
 
-A lightweight, configurable webhook proxy written in Go that receives Jira issue notifications and forwards them as richly formatted, user-mention-enabled messages to specific Microsoft Teams channels.
+A lightweight webhook proxy that receives Jira issue notifications and forwards them concurrently to **Microsoft Teams** and **Mattermost**.
 
-This service acts as a middleman, translating raw Jira webhook data into structured and readable [Adaptive Cards](https://adaptivecards.io/) for Microsoft Teams, making it easier for teams to track Jira activity directly where they collaborate.
+Each notification channel is a self-contained `Notifier` implementation — adding new channels requires only implementing a single interface.
 
 ## Features
 
-  * **Jira Webhook Consumer:** Receives and processes webhook events from Jira for issue creation, updates, and comments.
-  * **Dynamic Channel Routing:** Forwards notifications to different MS Teams channels based on a `/:team` parameter in the webhook URL (e.g., `/platform`, `/runtime`, `/network`).
-  * **Rich Teams Notifications:** Formats messages as Adaptive Cards, a significant improvement over plain text.
-  * **User @Mentions:** Automatically @mentions the Jira issue's "Issuer" (Creator) and "Assignee" in the Teams notification, ensuring they see the update.
-  * **Highly Configurable:** All target webhook URLs are managed via a simple `config.yml` file or can be overridden with environment variables.
-  * **Containerized:** Includes a `Dockerfile` for easy deployment and testing with Docker.
-  * **Health Check:** Provides a `/healthz` endpoint for Kubernetes readiness/liveness probes.
+- **Multi-channel fan-out** — every Jira event is sent to all configured notifiers concurrently via `errgroup`.
+- **Microsoft Teams** — Adaptive Cards with `@mentions` for creator and assignee, team-based URL routing.
+- **Mattermost** — Slack-compatible attachments with color bars, fields, and "View Issue" links.
+- **Notifier interface** — clean abstraction (`Name()` + `Send()`); each channel owns its formatting and HTTP delivery.
+- **Independent failures** — one channel failing does not block or affect the others.
+- **Always 200 OK** — errors are logged with `[notifier_name]` prefix, never propagated to Jira.
+- **Mattermost is opt-in** — set `mattermost.webhook` to enable; leave empty for MSTeams-only mode.
+- **Configurable** — `config.yml` with environment variable overrides (`MYAPP_` prefix).
+- **Containerized** — multi-stage Dockerfile, Helm chart for Kubernetes.
+- **Health check** — `GET /healthz` returns `204 No Content`.
 
-## How It Works
+## Architecture
 
-The data flow is simple and effective:
+```
+Jira Webhook POST /:team
+       │
+       ▼
+  HandleJiraWebhook
+  ├─ bind JiraRequest
+  ├─ errgroup.Go ──► MSTeamsNotifier.Send()
+  │                    ├─ resolve team URL (platform/network/runtime/default)
+  │                    ├─ generate AdaptiveCard with @mentions
+  │                    └─ POST to Teams Incoming Webhook
+  └─ errgroup.Go ──► MattermostNotifier.Send()
+                       ├─ build Slack-compatible attachment
+                       ├─ green bar for issues, blue for comments
+                       └─ POST to Mattermost Incoming Webhook
+       │
+       ▼
+  return 200 OK (errors logged)
+```
 
-1.  **Jira Event:** An action occurs in Jira (e.g., an issue is updated).
-2.  **Webhook Trigger:** Jira sends an HTTP POST request with a detailed JSON payload to this proxy service. The URL provided to Jira includes a team-specific path (e.g., `http://your-proxy-service/runtime`).
-3.  **Proxy Service Processing:**
-      * The service receives the request and binds the JSON to its internal Go structs.
-      * It looks up the correct MS Teams webhook URL from `config.yml` based on the `/runtime` path parameter.
-      * It extracts key information (summary, type, issuer, assignee, issue URL).
-      * It constructs a detailed Adaptive Card JSON payload, including the @mention data for the relevant users.
-4.  **Notification Delivery:** The proxy sends the final Adaptive Card payload to the configured Microsoft Teams Incoming Webhook URL.
-5.  **Teams Renders Card:** Microsoft Teams receives the payload and renders a rich, interactive card with clickable mentions and buttons in the designated channel.
+### Package Structure
+
+```
+internal/webhook-proxy/
+├── handler/
+│   └── proxy.go              # Channel-agnostic fan-out handler
+├── notifier/
+│   ├── notifier.go           # Notifier interface
+│   ├── msteams.go            # MSTeams implementation + Adaptive Card generation
+│   ├── msteams_types.go      # Adaptive Card struct types
+│   ├── mattermost.go         # Mattermost implementation
+│   ├── mattermost_types.go   # Slack-compatible attachment types
+│   ├── msteams_test.go
+│   └── mattermost_test.go
+├── request/
+│   └── request.go            # Jira webhook payload structs
+└── cmd/
+    ├── api/api.go            # Startup wiring + Echo routes
+    └── integration/main.go   # Local integration test harness
+```
+
+### Notifier Interface
+
+```go
+type Notifier interface {
+    Name() string
+    Send(ctx context.Context, req *request.JiraRequest, isComment bool, team string) error
+}
+```
 
 ## Getting Started
 
 ### Prerequisites
 
-  * **Go:** Version 1.18 or higher.
-  * **Docker:** Recommended for running the application in a consistent environment.
-  * **Jira Instance:** With administrative permissions to create webhooks.
-  * **Microsoft Teams:** With permissions to add an "Incoming Webhook" connector to a channel.
+- **Go** 1.25+
+- **Docker** (optional, for containerized deployment)
+- **Jira** instance with webhook permissions
+- **Microsoft Teams** channel with an [Incoming Webhook](https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook) connector
+- **Mattermost** channel with an [Incoming Webhook](https://developers.mattermost.com/integrate/webhooks/incoming/) (optional)
 
 ### 1. Configure Microsoft Teams
 
-For each Teams channel you want to send notifications to, you must create a unique **Incoming Webhook URL**:
+For each Teams channel that should receive notifications, create an Incoming Webhook:
 
-1.  In Microsoft Teams, navigate to the target channel.
-2.  Click the three dots (•••) next to the channel name and select **Connectors**.
-3.  Search for **Incoming Webhook**, click **Add**, and then **Configure**.
-4.  Give the webhook a name (e.g., "Jira Notifications") and optionally upload an icon.
-5.  Click **Create**.
-6.  **Copy the generated Webhook URL.** This is a sensitive URL that you will add to your `config.yml`.
-7.  Repeat this process for each channel (e.g., one for the default route, one for the "runtime" team, etc.).
+1. Open the target channel → click **⋯** → **Connectors** → **Incoming Webhook**.
+2. Name it (e.g. "Jira Notifications"), optionally upload an icon, click **Create**.
+3. Copy the generated webhook URL.
+4. Repeat for each team/channel (default, platform, runtime, network).
 
-### 2\. Configure the Proxy Application (`config.yml`)
+### 2. Configure Mattermost (Optional)
 
-In the root of the project, create a `config.yml` file. This file tells the application where to send notifications.
+1. Go to **Integrations** → **Incoming Webhooks** → **Add Incoming Webhook**.
+2. Choose the target channel, name it, click **Save**.
+3. Copy the generated webhook URL.
+
+### 3. Configure the Application (`config.yml`)
 
 ```yaml
-# config.yml
 api:
-  port: 8080 # The port on which the proxy service will listen.
+  port: 8080
 
-# Holds the webhook URLs for Microsoft Teams.
 msteams:
-  # The default URL used if the webhook URL doesn't specify a team (e.g., http://your-proxy/)
-  # or if the specified team is not runtime, platform, or network.
-  url: "YOUR_DEFAULT_MS_TEAMS_WEBHOOK_URL_HERE"
-  
-  # URL for the "runtime" team (triggered by http://your-proxy/runtime).
-  runtime_url: "YOUR_RUNTIME_TEAM_MS_TEAMS_WEBHOOK_URL_HERE"
+  # Default Teams webhook (used when no team matches or team is empty)
+  url: "YOUR_DEFAULT_MS_TEAMS_WEBHOOK_URL"
+  # Team-specific URLs (triggered by /:team path parameter)
+  runtime_url: "YOUR_RUNTIME_TEAM_WEBHOOK_URL"
+  platform_url: "YOUR_PLATFORM_TEAM_WEBHOOK_URL"
+  network_url: "YOUR_NETWORK_TEAM_WEBHOOK_URL"
 
-  # URL for the "platform" team (triggered by http://your-proxy/platform).
-  platform_url: "YOUR_PLATFORM_TEAM_MS_TEAMS_WEBHOOK_URL_HERE"
-
-  # URL for the "network" team (triggered by http://your-proxy/network).
-  network_url: "YOUR_NETWORK_TEAM_MS_TEAMS_WEBHOOK_URL_HERE"
+mattermost:
+  # Set to enable Mattermost notifications. Leave empty to disable.
+  webhook: "YOUR_MATTERMOST_WEBHOOK_URL"
 ```
 
-You can also override these settings using environment variables with the `MYAPP_` prefix. For example:
+**Environment variable overrides** (prefix `MYAPP_`, underscores become dots):
 
-  * `MYAPP_API_PORT=9000`
-  * `MYAPP_MSTEAMS_URL="your-url-here"`
-  * `MYAPP_MSTEAMS_RUNTIME_URL="your-runtime-url-here"`
+| Variable | Example |
+|----------|---------|
+| `MYAPP_API_PORT` | `9000` |
+| `MYAPP_MSTEAMS_URL` | `https://...` |
+| `MYAPP_MSTEAMS_RUNTIME_URL` | `https://...` |
+| `MYAPP_MSTEAMS_PLATFORM_URL` | `https://...` |
+| `MYAPP_MSTEAMS_NETWORK_URL` | `https://...` |
+| `MYAPP_MATTERMOST_WEBHOOK` | `https://...` |
 
-### 3\. Run the Application
+### 4. Run the Application
 
-#### Using Docker (Recommended)
+#### Using Docker
 
-1.  **Build the Docker image:**
+```bash
+docker build -t jira-webhook-proxy .
+docker run --rm -p 8080:8080 \
+  -v $(pwd)/config.yml:/app/config.yml \
+  jira-webhook-proxy
+```
 
-    ```bash
-    docker build -t jira-msteams-proxy .
-    ```
+#### Locally
 
-2.  **Run the container:**
-    This command runs the proxy on port `8080` and mounts your local `config.yml` into the container's working directory (`/root/` in this example; adjust if your Dockerfile's `WORKDIR` is different).
+```bash
+go mod tidy
+go run ./cmd/webhook-proxy api
+```
 
-    ```bash
-    docker run --rm -p 8080:8080 \
-      -v $(pwd)/config.yml:/root/config.yml \
-      jira-msteams-proxy
-    ```
+### 5. Configure Jira Webhook
 
-#### Running Locally
+1. Go to **Project Settings** → **Automation** → **Create rule**.
+2. Add trigger (e.g. "Issue created", "Issue updated", "Comment added").
+3. Add action **Send web request**.
+4. Set the **Webhook URL** to your proxy endpoint:
 
-1.  **Install dependencies:**
-    ```bash
-    go mod tidy
-    ```
-2.  **Run the application:**
-    ```bash
-    go run ./cmd/webhook-proxy/ api
-    ```
+| Use case | URL |
+|----------|-----|
+| Issue create/update → default channel | `http://<host>:8080/` |
+| Issue create/update → platform team | `http://<host>:8080/platform` |
+| Comment → platform team | `http://<host>:8080/comment/platform` |
 
-### 4\. Configure Jira Webhook
-
-1.  Navigate to your Jira project settings: **Project Settings \> Automation**.
-2.  Click **Create rule**.
-3.  **Name:** Give it a clear name, e.g., "MS Teams Notifications".
-4.  **URL:** This is the URL to your running proxy service, including the team path.
-      * Add Component `Send web request`
-      * To send notifications for the "platform" team to their specific channel, at Webhook URL use:
-        `http://<your_proxy_service_host_or_ip>:8080/comment/platform` and set `Issue data` as `Webhook body`.
-      * To send notifications to the default channel, use:
-        `http://<your_proxy_service_host_or_ip>:8080/default` (or just `/`)
+5. Set **Issue data** as the webhook body.
 
 ## API Endpoints
 
-| Method | Path                | Description                                        |
-|--------|---------------------|----------------------------------------------------|
-| `POST` | `/:team`            | Handles issue created/updated events for a specific team. |
-| `POST` | `/`                 | Handles issue created/updated events for the default team. |
-| `POST` | `/comment/:team`    | Handles issue comment events for a specific team.  |
-| `POST` | `/comment`          | Handles issue comment events for the default team.   |
-| `GET`  | `/healthz`          | Health check endpoint. Returns HTTP 204 No Content. |
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/:team` | Issue created/updated → all notifiers |
+| `POST` | `/` | Issue created/updated → default team |
+| `POST` | `/comment/:team` | Comment added → all notifiers |
+| `POST` | `/comment` | Comment added → default team |
+| `GET` | `/healthz` | Health check → `204 No Content` |
 
 ## Testing
 
-You can simulate a Jira webhook request using `curl`.
+### Unit Tests
 
-1.  **Create a `sample_jira_payload.json` file** with a realistic payload (you can get one from the Jira REST API or a webhook catcher like `webhook.site`). Ensure it contains populated `creator` and `assignee` objects with valid `emailAddress`, `name`, and `displayName` fields for testing mentions.
+```bash
+go test ./... -v
+```
 
-2.  **Run this `curl` command** to send the test payload to the "runtime" team endpoint:
+Tests cover:
+- **`notifier/msteams_test.go`** — Name, Send success/failure, team routing, empty URL skip.
+- **`notifier/mattermost_test.go`** — Name, Send success/failure, comment color, payload format.
+- **`handler/proxy_test.go`** — Fan-out to multiple notifiers, one-notifier-fails still returns 200, invalid body returns 400.
 
-    ```bash
-    curl -X POST \
-      -H "Content-Type: application/json" \
-      -d @sample_jira_payload.json \
-      http://localhost:8080/runtime
-    ```
+### Local Integration Test
 
-    This will trigger a notification in the MS Teams channel configured for `runtime_url` in your `config.yml`.
+The `cmd/integration` harness starts the proxy with mock receivers so you can test end-to-end without real webhook URLs.
+
+```bash
+# Terminal 1 — start proxy + mock MSTeams receiver (Mattermost → real Snapp webhook)
+go run ./cmd/integration
+
+# Terminal 2 — send test requests
+curl -s -w "\n→ HTTP %{http_code}\n" \
+  -X POST http://localhost:8080/ \
+  -H "Content-Type: application/json" \
+  -d @sample_jira_payload.json
+
+# Issue to platform team
+curl -s -w "\n→ HTTP %{http_code}\n" \
+  -X POST http://localhost:8080/platform \
+  -H "Content-Type: application/json" \
+  -d @sample_jira_payload.json
+
+# Comment to platform team (blue color in Mattermost)
+curl -s -w "\n→ HTTP %{http_code}\n" \
+  -X POST http://localhost:8080/comment/platform \
+  -H "Content-Type: application/json" \
+  -d @sample_jira_payload.json
+
+# Invalid body (expect 400)
+curl -s -w "\n→ HTTP %{http_code}\n" \
+  -X POST http://localhost:8080/platform \
+  -H "Content-Type: application/json" \
+  -d '{bad json'
+```
+
+Expected output in Terminal 1:
+```
+📩 [msteams] POST /platform
+   Body (961 bytes): {"type":"message","attachments":[...]}
+
+📩 [mattermost] POST /
+   Body (496 bytes): {"text":"","attachments":[{"color":"#36a64f","title":"🎯 PROJ-125",...}]}
+```
+
+## Deployment (Helm)
+
+```bash
+helm install jira-webhook-proxy ./deployments/webhook-proxy \
+  --set jira_element_webhook_url="https://..." \
+  --set service_desk_notification.runtime="https://..." \
+  --set service_desk_notification.platform="https://..." \
+  --set service_desk_notification.network="https://..." \
+  --set mattermost.webhook="https://..."
+```
+
+## License
+
+This project is licensed under the MIT License.

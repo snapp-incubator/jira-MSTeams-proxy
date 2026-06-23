@@ -17,6 +17,10 @@
 *.so
 *.dylib
 
+# Project binaries
+integration
+webhook-proxy
+
 # Test binary, built with `go test -c`
 *.test
 
