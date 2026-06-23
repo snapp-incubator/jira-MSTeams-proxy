@@ -101,7 +101,7 @@ func TestMattermostNotifier_Send_CommentColor(t *testing.T) {
 func TestMattermostNotifier_Send_Failure(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("webhook error"))
+		_, _ = w.Write([]byte("webhook error"))
 	}))
 	defer server.Close()
 

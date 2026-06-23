@@ -55,7 +55,7 @@ func TestMSTeamsNotifier_Send_Success(t *testing.T) {
 func TestMSTeamsNotifier_Send_Failure(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("internal error"))
+		_, _ = w.Write([]byte("internal error"))
 	}))
 	defer server.Close()
 

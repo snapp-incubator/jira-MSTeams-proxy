@@ -95,7 +95,7 @@ func startMockReceiver(name, addr string) *http.Server {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)
-		defer r.Body.Close()
+		defer func() { _ = r.Body.Close() }()
 
 		separator := strings.Repeat("─", 60)
 		fmt.Printf("\n%s\n📩 [%s] %s %s\n", separator, name, r.Method, r.URL.Path)
@@ -106,7 +106,7 @@ func startMockReceiver(name, addr string) *http.Server {
 		fmt.Println(separator)
 
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, "ok")
+		_, _ = fmt.Fprint(w, "ok")
 	})
 
 	srv := &http.Server{Addr: addr, Handler: mux}
