@@ -75,9 +75,19 @@ func (n *MattermostNotifier) Send(ctx context.Context, req *request.JiraRequest,
 
 // buildPayload constructs a MattermostPayload with Slack-compatible attachments.
 func (n *MattermostNotifier) buildPayload(req *request.JiraRequest, isComment bool) MattermostPayload {
-	// Resolve display names
+
 	creatorDisplayName := resolveDisplayName(req.Fields.Creator.DisplayName, req.Fields.Creator.Name)
 	assigneeDisplayName := resolveDisplayName(req.Fields.Assignee.DisplayName, req.Fields.Assignee.Name)
+
+
+	issuerDisplay := creatorDisplayName
+	if req.Fields.Creator.EmailAddress != "" {
+		issuerDisplay = "@" + req.Fields.Creator.EmailAddress
+	}
+	assigneeDisplay := assigneeDisplayName
+	if req.Fields.Assignee.EmailAddress != "" {
+		assigneeDisplay = "@" + req.Fields.Assignee.EmailAddress
+	}
 
 	// Resolve type and link
 	requestTypeName := "N/A"
@@ -113,8 +123,8 @@ func (n *MattermostNotifier) buildPayload(req *request.JiraRequest, isComment bo
 		Fields: []MattermostField{
 			{Title: "Type", Value: requestTypeName, Short: true},
 			{Title: "Summary", Value: summary, Short: false},
-			{Title: "Issuer", Value: creatorDisplayName, Short: true},
-			{Title: "Assignee", Value: assigneeDisplayName, Short: true},
+			{Title: "Issuer", Value: issuerDisplay, Short: true},
+			{Title: "Assignee", Value: assigneeDisplay, Short: true},
 		},
 	}
 
