@@ -9,5 +9,7 @@ data:
       runtime_url: {{ .Values.service_desk_notification.runtime }}
       platform_url: {{ .Values.service_desk_notification.platform }}
       network_url: {{ .Values.service_desk_notification.network }}
+   mattermost:
+      webhook: ""
     api:
       port: 8080
