@@ -20,32 +20,32 @@
             "namedValue": "Bug"
         },
         "creator": {
-            "self": "http://your-jira-instance.com/rest/api/2/user?username=f.mulder",
-            "name": "f.mulder",
-            "key": "f.mulder",
-            "emailAddress": "f.mulder@x.io",
+            "self": "http://your-jira-instance.com/rest/api/2/user?username=mohammadreza.saberi",
+            "name": "mohammadreza.saberi",
+            "key": "mohammadreza.saberi",
+            "emailAddress": "mohammadreza.saberi@snapp.cab",
             "avatarUrls": {
-                "48x48": "http://your-jira-instance.com/secure/useravatar?ownerId=f.mulder&avatarId=10122",
-                "24x24": "http://your-jira-instance.com/secure/useravatar?size=small&ownerId=f.mulder&avatarId=10122",
-                "16x16": "http://your-jira-instance.com/secure/useravatar?size=xsmall&ownerId=f.mulder&avatarId=10122",
-                "32x32": "http://your-jira-instance.com/secure/useravatar?size=medium&ownerId=f.mulder&avatarId=10122"
+                "48x48": "http://your-jira-instance.com/secure/useravatar?ownerId=mohammadreza.saberi&avatarId=10122",
+                "24x24": "http://your-jira-instance.com/secure/useravatar?size=small&ownerId=mohammadreza.saberi&avatarId=10122",
+                "16x16": "http://your-jira-instance.com/secure/useravatar?size=xsmall&ownerId=mohammadreza.saberi&avatarId=10122",
+                "32x32": "http://your-jira-instance.com/secure/useravatar?size=medium&ownerId=mohammadreza.saberi&avatarId=10122"
             },
-            "displayName": "Fox Mulder",
+            "displayName": "mohammadreza.saberi",
             "active": true,
             "timeZone": "America/New_York"
         },
         "assignee": {
-            "self": "http://your-jira-instance.com/rest/api/2/user?username=d.scully",
-            "name": "d.scully",
-            "key": "d.scully",
-            "emailAddress": "d.scully@x.io",
+            "self": "http://your-jira-instance.com/rest/api/2/user?username=mohammadreza.saberi",
+            "name": "mohammadreza.saberi",
+            "key": "mohammadreza.saberi",
+            "emailAddress": "mohammadreza.saberi@snapp.cab",
             "avatarUrls": {
-                "48x48": "http://your-jira-instance.com/secure/useravatar?ownerId=d.scully&avatarId=10123",
-                "24x24": "http://your-jira-instance.com/secure/useravatar?size=small&ownerId=d.scully&avatarId=10123",
-                "16x16": "http://your-jira-instance.com/secure/useravatar?size=xsmall&ownerId=d.scully&avatarId=10123",
-                "32x32": "http://your-jira-instance.com/secure/useravatar?size=medium&ownerId=d.scully&avatarId=10123"
+                "48x48": "http://your-jira-instance.com/secure/useravatar?ownerId=mohammadreza.saberi&avatarId=10123",
+                "24x24": "http://your-jira-instance.com/secure/useravatar?size=small&ownerId=mohammadreza.saberi&avatarId=10123",
+                "16x16": "http://your-jira-instance.com/secure/useravatar?size=xsmall&ownerId=mohammadreza.saberi&avatarId=10123",
+                "32x32": "http://your-jira-instance.com/secure/useravatar?size=medium&ownerId=mohammadreza.saberi&avatarId=10123"
             },
-            "displayName": "Dana Scully",
+            "displayName": "mohammadreza.saberi",
             "active": true,
             "timeZone": "America/New_York"
         },
@@ -53,7 +53,7 @@
             "self": "http://your-jira-instance.com/rest/api/2/user?username=w.skinner",
             "name": "w.skinner",
             "key": "w.skinner",
-            "emailAddress": "w.skinner@x.io",
+            "emailAddress": "w.skinner@snapp.cab",
             "displayName": "Walter Skinner",
             "active": true,
             "timeZone": "America/New_York"
