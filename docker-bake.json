@@ -1,4 +1,9 @@
 {
+  "variable": {
+    "DOCKER_METADATA_OUTPUT_TAGS": {
+      "default": "ghcr.io/snapp-incubator/jira-msteams-proxy:latest"
+    }
+  },
   "group": {
     "default": {
       "targets": ["jira-msteams-proxy"]
@@ -6,7 +11,8 @@
   },
   "target": {
     "jira-msteams-proxy": {
-      "dockerfile": "Dockerfile"
+      "dockerfile": "Dockerfile",
+      "tags": ["${DOCKER_METADATA_OUTPUT_TAGS}"]
     }
   }
 }
