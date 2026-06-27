@@ -10,7 +10,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o webhook-proxy ./cmd/webhook-proxy
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o webhook-proxy ./cmd/webhook-proxy
 
 FROM alpine:3.21
 
