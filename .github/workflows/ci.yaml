@@ -1,7 +1,12 @@
 ---
 name: ci
 on:
-  - push
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
 jobs:
   lint:
     name: lint
@@ -23,14 +28,30 @@ jobs:
       - lint
     steps:
       - uses: actions/checkout@v6
+
       - uses: docker/setup-buildx-action@v4
       - uses: docker/setup-qemu-action@v4
+
       - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate image tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/snapp-incubator/jira-msteams-proxy
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+
       - uses: docker/bake-action@v7
         with:
           files: "docker-bake.json"
           push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

@@ -1,13 +1,12 @@
 {
   "group": {
     "default": {
-      "targets": ["jira-element-proxy"]
+      "targets": ["jira-msteams-proxy"]
     }
   },
   "target": {
-    "jira-element-proxy": {
-      "dockerfile": "Dockerfile",
-      "tags": ["ghcr.io/snapp-incubator/jira-element-proxy"]
+    "jira-msteams-proxy": {
+      "dockerfile": "Dockerfile"
     }
   }
 }
