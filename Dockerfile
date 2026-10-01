@@ -1,4 +1,4 @@
-FROM golang:1.25 AS build
+FROM golang:1.27 AS build
 
 LABEL maintainer="Saman Hoseini <saman2000hoseini@gmail.com>"
 
@@ -12,7 +12,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o webhook-proxy ./cmd/webhook-proxy
 
-FROM alpine:3.21
+FROM alpine:3.24
 
 RUN apk --no-cache add ca-certificates
 
