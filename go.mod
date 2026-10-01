@@ -1,14 +1,14 @@
 module github.com/snapp-incubator/jira-msteams-proxy
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/knadh/koanf v1.5.0
-	github.com/knadh/koanf/v2 v2.3.6
-	github.com/labstack/echo/v4 v4.15.4
+	github.com/knadh/koanf/v2 v2.3.7
+	github.com/labstack/echo/v4 v4.16.0
 	github.com/sirupsen/logrus v1.10.2
 	github.com/spf13/cobra v1.10.2
-	golang.org/x/sync v0.22.0
+	golang.org/x/sync v0.23.0
 )
 
 require (
@@ -27,6 +27,6 @@ require (
 	golang.org/x/crypto v0.53.0 // indirect
 	golang.org/x/net v0.56.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
-	golang.org/x/text v0.38.0 // indirect
+	golang.org/x/text v0.40.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
