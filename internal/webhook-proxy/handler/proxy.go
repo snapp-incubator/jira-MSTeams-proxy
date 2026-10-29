@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/snapp-incubator/jira-msteams-proxy/internal/webhook-proxy/notifier"
 	"github.com/snapp-incubator/jira-msteams-proxy/internal/webhook-proxy/request"
@@ -21,7 +21,7 @@ type Proxy struct {
 // and dispatches it to every registered Notifier in parallel.
 // HTTP response to Jira is always 200 OK (errors are logged, not propagated).
 func (p *Proxy) HandleJiraWebhook(isComment bool) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		team := c.Param("team")
 		ctx := c.Request().Context()
 

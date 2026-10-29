@@ -12,7 +12,7 @@ import (
 	"github.com/snapp-incubator/jira-msteams-proxy/internal/webhook-proxy/handler"
 	"github.com/snapp-incubator/jira-msteams-proxy/internal/webhook-proxy/notifier"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -31,7 +31,7 @@ func main(cfg config.Config) {
 
 	logrus.Printf("API started with %d notifier(s) :D", len(notifiers))
 
-	app.GET("/healthz", func(c echo.Context) error { return c.NoContent(http.StatusNoContent) })
+	app.GET("/healthz", func(c *echo.Context) error { return c.NoContent(http.StatusNoContent) })
 
 	app.POST("/:team", proxyHandler.HandleJiraWebhook(false))
 	app.POST("/comment/:team", proxyHandler.HandleJiraWebhook(true))

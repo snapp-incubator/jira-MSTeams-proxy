@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,7 +10,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/snapp-incubator/jira-msteams-proxy/internal/config"
 	"github.com/snapp-incubator/jira-msteams-proxy/internal/webhook-proxy/handler"
@@ -39,9 +40,8 @@ func main() {
 
 
 	app := echo.New()
-	app.HideBanner = true
 
-	app.GET("/healthz", func(c echo.Context) error { return c.NoContent(http.StatusNoContent) })
+	app.GET("/healthz", func(c *echo.Context) error { return c.NoContent(http.StatusNoContent) })
 	app.POST("/:team", proxyHandler.HandleJiraWebhook(false))
 	app.POST("/comment/:team", proxyHandler.HandleJiraWebhook(true))
 	app.POST("/", proxyHandler.HandleJiraWebhook(false))
@@ -80,7 +80,7 @@ func main() {
 
 
 	go func() {
-		if err := app.Start(":8080"); err != nil && err != http.ErrServerClosed {
+		if err := (echo.StartConfig{Address: ":8080", HideBanner: true}).Start(context.Background(), app); err != nil && err != http.ErrServerClosed {
 			logrus.Fatalf("proxy start failed: %s", err)
 		}
 	}()

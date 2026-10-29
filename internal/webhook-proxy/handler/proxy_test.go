@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/snapp-incubator/jira-msteams-proxy/internal/webhook-proxy/notifier"
 	"github.com/snapp-incubator/jira-msteams-proxy/internal/webhook-proxy/request"
 )
@@ -51,8 +51,7 @@ func TestHandleJiraWebhook_FanOut(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPath("/:team")
-	c.SetParamNames("team")
-	c.SetParamValues("platform")
+	c.SetPathValues(echo.PathValues{{Name: "team", Value: "platform"}})
 
 	handler := proxy.HandleJiraWebhook(false)
 	if err := handler(c); err != nil {
@@ -83,8 +82,7 @@ func TestHandleJiraWebhook_OneNotifierFails(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPath("/:team")
-	c.SetParamNames("team")
-	c.SetParamValues("platform")
+	c.SetPathValues(echo.PathValues{{Name: "team", Value: "platform"}})
 
 	handler := proxy.HandleJiraWebhook(false)
 	if err := handler(c); err != nil {
@@ -114,8 +112,7 @@ func TestHandleJiraWebhook_InvalidBody(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPath("/:team")
-	c.SetParamNames("team")
-	c.SetParamValues("platform")
+	c.SetPathValues(echo.PathValues{{Name: "team", Value: "platform"}})
 
 	handler := proxy.HandleJiraWebhook(false)
 	if err := handler(c); err != nil {
@@ -142,8 +139,7 @@ func TestHandleJiraWebhook_EmptyNotifierList(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPath("/:team")
-	c.SetParamNames("team")
-	c.SetParamValues("platform")
+	c.SetPathValues(echo.PathValues{{Name: "team", Value: "platform"}})
 
 	handler := proxy.HandleJiraWebhook(false)
 	if err := handler(c); err != nil {
